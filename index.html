@@ -9,8 +9,9 @@
   <style>
     :root {
       --bg-dark: #04060f;
-      --card-bg: rgba(13, 19, 38, 0.75);
+      --card-bg: rgba(13, 19, 38, 0.72);
       --card-border: rgba(0, 242, 254, 0.28);
+      --card-border-glow: rgba(0, 242, 254, 0.6);
       --neon-cyan: #00f2fe;
       --neon-purple: #a855f7;
       --neon-pink: #ec4899;
@@ -32,11 +33,12 @@
       background-color: var(--bg-dark);
       color: var(--text-main);
       min-height: 100vh;
-      padding: 18px 16px 45px 16px;
+      padding: 20px 18px 45px 18px;
       overflow-x: hidden;
       position: relative;
     }
 
+    /* بوم انیمیشن متحرک ذرات و خطوط نئونی */
     #bgCanvas {
       position: fixed;
       top: 0;
@@ -47,6 +49,7 @@
       pointer-events: none;
     }
 
+    /* هاله‌های نوری درخشان متحرک */
     .glow-orb {
       position: fixed;
       border-radius: 50%;
@@ -84,13 +87,14 @@
       margin: 0 auto;
       display: flex;
       flex-direction: column;
-      gap: 15px;
+      gap: 16px;
     }
 
+    /* انیمیشن ورود آبشاری برای همه اجزا */
     .anim-fade {
       opacity: 0;
-      transform: translateY(22px) scale(0.97);
-      transition: all 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+      transform: translateY(24px) scale(0.97);
+      transition: all 0.65s cubic-bezier(0.16, 1, 0.3, 1);
     }
 
     .anim-fade.show {
@@ -98,6 +102,7 @@
       transform: translateY(0) scale(1);
     }
 
+    /* نوار وضعیت سیستم (HUD Header) */
     .system-status-bar {
       display: flex;
       align-items: center;
@@ -140,11 +145,13 @@
       border: 1px solid rgba(0, 242, 254, 0.25);
       padding: 3px 10px;
       border-radius: 12px;
+      letter-spacing: 0.5px;
     }
 
+    /* هدر اصلی */
     header {
       text-align: center;
-      padding: 6px 0;
+      padding: 8px 0;
     }
 
     .main-title {
@@ -154,14 +161,17 @@
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
       filter: drop-shadow(0 0 24px rgba(0, 242, 254, 0.55));
+      letter-spacing: 0.5px;
+      margin-bottom: 4px;
     }
 
     .sub-title {
-      font-size: 0.86rem;
+      font-size: 0.88rem;
       color: var(--text-muted);
-      margin-top: 2px;
+      font-weight: 400;
     }
 
+    /* بنر مشخصات کاربر و بانک اطلاعات */
     .user-overview-card {
       background: var(--card-bg);
       border: 1px solid var(--card-border);
@@ -190,6 +200,7 @@
       align-items: center;
       justify-content: center;
       font-size: 1.3rem;
+      box-shadow: 0 0 16px rgba(0, 242, 254, 0.3);
     }
 
     .user-info-text .name {
@@ -211,6 +222,7 @@
       font-size: 1.15rem;
       font-weight: 900;
       color: #fff;
+      text-shadow: 0 0 12px rgba(255, 255, 255, 0.4);
     }
 
     .stat-mini-pill .label {
@@ -218,6 +230,7 @@
       color: var(--text-muted);
     }
 
+    /* دکمه‌های بزرگ انتخاب نوع جستجو */
     .search-modes {
       display: grid;
       grid-template-columns: 1fr 1fr;
@@ -240,12 +253,14 @@
 
     .mode-tab .mode-icon {
       font-size: 1.5rem;
+      transition: transform 0.25s ease;
     }
 
     .mode-tab .mode-label {
       font-size: 0.86rem;
       font-weight: 700;
       color: var(--text-muted);
+      transition: color 0.25s ease;
     }
 
     .mode-tab.active {
@@ -260,13 +275,18 @@
       font-weight: 900;
     }
 
+    .mode-tab.active .mode-icon {
+      transform: scale(1.15);
+    }
+
+    /* کادر بزرگ ورودی جستجو */
     .search-box-card {
       position: relative;
     }
 
     .search-input-box {
       width: 100%;
-      background: rgba(13, 19, 38, 0.88);
+      background: rgba(13, 19, 38, 0.85);
       border: 1.5px solid var(--card-border);
       border-radius: 20px;
       padding: 18px 20px 18px 54px;
@@ -279,9 +299,16 @@
       box-shadow: 0 10px 30px rgba(0, 0, 0, 0.45);
     }
 
+    .search-input-box::placeholder {
+      color: #64748b;
+      font-weight: 400;
+      font-size: 0.95rem;
+    }
+
     .search-input-box:focus {
       border-color: var(--neon-cyan);
       box-shadow: 0 0 28px rgba(0, 242, 254, 0.4), 0 12px 36px rgba(0, 0, 0, 0.7);
+      background: rgba(13, 19, 38, 0.98);
     }
 
     .search-icon-float {
@@ -294,6 +321,7 @@
       filter: drop-shadow(0 0 8px rgba(0, 242, 254, 0.6));
     }
 
+    /* برچسب‌های پیشنهادی */
     .quick-tags-wrap {
       display: flex;
       gap: 8px;
@@ -317,12 +345,15 @@
       transition: all 0.25s ease;
     }
 
-    .tag-chip:hover {
+    .tag-chip:hover, .tag-chip:active {
       border-color: var(--neon-cyan);
       color: #fff;
+      background: rgba(0, 242, 254, 0.12);
       box-shadow: 0 0 14px rgba(0, 242, 254, 0.35);
+      transform: translateY(-1px);
     }
 
+    /* دکمه اصلی عملیات */
     .main-action-btn {
       width: 100%;
       padding: 18px 20px;
@@ -333,16 +364,17 @@
       color: #fff;
       font-size: 1.1rem;
       font-weight: 900;
+      letter-spacing: 0.5px;
       cursor: pointer;
       display: flex;
       align-items: center;
       justify-content: center;
       gap: 12px;
-      box-shadow: 0 0 30px rgba(0, 242, 254, 0.45);
+      box-shadow: 0 0 30px rgba(0, 242, 254, 0.45), 0 10px 25px rgba(168, 85, 247, 0.4);
       position: relative;
       overflow: hidden;
       animation: gradientShift 6s ease infinite;
-      transition: all 0.25s ease;
+      transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
     }
 
     @keyframes gradientShift {
@@ -351,17 +383,37 @@
       100% { background-position: 0% 50%; }
     }
 
+    .main-action-btn::after {
+      content: '';
+      position: absolute;
+      top: -50%;
+      left: -60%;
+      width: 40%;
+      height: 200%;
+      background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.35), transparent);
+      transform: rotate(30deg);
+      animation: sweepLight 4s infinite;
+    }
+
+    @keyframes sweepLight {
+      0% { left: -70%; }
+      30%, 100% { left: 140%; }
+    }
+
     .main-action-btn:active {
-      transform: scale(0.97);
+      transform: scale(0.96);
+      box-shadow: 0 0 20px rgba(0, 242, 254, 0.3);
     }
 
     .main-action-btn.loading {
       pointer-events: none;
+      filter: grayscale(0.5);
+      animation: none;
       background: #334155;
       box-shadow: none;
-      animation: none;
     }
 
+    /* پنل HUD نتایج زنده */
     .hud-results-card {
       background: var(--card-bg);
       border: 1.5px solid var(--card-border);
@@ -400,6 +452,9 @@
     .hud-head-title {
       font-size: 0.95rem;
       font-weight: 800;
+      display: flex;
+      align-items: center;
+      gap: 8px;
     }
 
     .hud-badge-query {
@@ -425,6 +480,9 @@
       border-radius: 16px;
       padding: 14px 8px;
       text-align: center;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
     }
 
     .metric-number {
@@ -432,7 +490,7 @@
       font-weight: 900;
       color: var(--neon-cyan);
       text-shadow: 0 0 14px rgba(0, 242, 254, 0.6);
-      margin-bottom: 4px;
+      line-height: 1.1;
     }
 
     .metric-number.pink {
@@ -464,6 +522,7 @@
       line-height: 1.4;
     }
 
+    /* اعلان شناور Toast */
     .toast-pill {
       position: fixed;
       bottom: 45px;
@@ -484,7 +543,7 @@
       gap: 10px;
       opacity: 0;
       pointer-events: none;
-      transition: all 0.35s ease;
+      transition: all 0.35s cubic-bezier(0.175, 0.885, 0.32, 1.275);
       white-space: nowrap;
     }
 
@@ -493,6 +552,7 @@
       opacity: 1;
     }
 
+    /* پاورقی */
     footer {
       margin-top: 25px;
       text-align: center;
@@ -515,37 +575,41 @@
     }
 
     @keyframes heartbeat {
-      0%, 100% { transform: scale(1); }
+      0%, 100% { transform: scale(1); filter: drop-shadow(0 0 2px #ff0055); }
       50% { transform: scale(1.35); filter: drop-shadow(0 0 12px #ff0055); }
     }
   </style>
 </head>
 <body>
 
+  <!-- پس‌زمینه متحرک ذرات -->
   <canvas id="bgCanvas"></canvas>
   <div class="glow-orb orb-purple"></div>
   <div class="glow-orb orb-cyan"></div>
 
   <div class="container">
 
+    <!-- نوار وضعیت فنی بالای صفحه -->
     <div class="system-status-bar anim-fade">
       <div class="status-badge">
         <div class="status-dot"></div>
         <span>SYSTEM OPERATIONAL</span>
       </div>
-      <div class="engine-tag">FTS5 • LIVE HUB</div>
+      <div class="engine-tag">FTS5 • WAL MODE</div>
     </div>
 
+    <!-- هدر -->
     <header class="anim-fade">
       <h1 class="main-title">⚡️ CLOUD SEARCH</h1>
       <p class="sub-title">سامانه جستجوی فوق‌سریع و هوشمند پایگاه داده</p>
     </header>
 
+    <!-- کارت مشخصات کاربر و آمار سریع -->
     <div class="user-overview-card anim-fade">
       <div class="user-meta">
         <div class="user-avatar-icon">🛡️</div>
         <div class="user-info-text">
-          <div class="name" id="userDisplayName">کاربر متصل تلگرام</div>
+          <div class="name" id="userDisplayName">در حال اتصال...</div>
           <div class="role" id="userRoleBadge">سرویس آماده به کار</div>
         </div>
       </div>
@@ -555,6 +619,7 @@
       </div>
     </div>
 
+    <!-- سوئیچ حالت سرچ -->
     <div class="search-modes anim-fade">
       <div class="mode-tab active" id="tabSearch" data-mode="search">
         <div class="mode-icon">🔍</div>
@@ -566,11 +631,13 @@
       </div>
     </div>
 
+    <!-- کادر ورودی سرچ -->
     <div class="search-box-card anim-fade">
       <span class="search-icon-float">⚡️</span>
       <input type="text" class="search-input-box" id="searchQueryInput" placeholder="دامنه یا کلمه کلیدی (مثلاً: instagram.com)..." />
     </div>
 
+    <!-- برچسب‌های آماده و پرکاربرد -->
     <div class="quick-tags-wrap anim-fade">
       <div class="tag-chip" data-q="instagram.com">📷 instagram.com</div>
       <div class="tag-chip" data-q="gmail.com">✉️ gmail.com</div>
@@ -579,61 +646,79 @@
       <div class="tag-chip" data-q="adobe.com">🎨 adobe.com</div>
     </div>
 
+    <!-- دکمه بزرگ اسکن و استخراج -->
     <button class="main-action-btn anim-fade" id="submitSearchBtn">
       <span id="btnIcon" style="font-size: 1.3rem;">🚀</span>
-      <span id="btnLabel">شروع اسکن و دانلود فایل</span>
+      <span id="btnLabel">شروع اسکن پایگاه داده و دریافت فایل</span>
     </button>
 
+    <!-- پنل HUD نمایش لحظه‌ای نتایج -->
     <div class="hud-results-card" id="hudCard">
       <div class="hud-head">
         <div class="hud-head-title">
-          <span>📊 وضعیت پردازش پایگاه داده</span>
+          <span>📊 وضعیت پردازش دیتابیس</span>
         </div>
         <div class="hud-badge-query" id="hudBadgeTarget">target.com</div>
       </div>
 
       <div class="metrics-row">
         <div class="metric-box">
-          <div class="metric-number" id="metricTime">0.024s</div>
-          <div class="metric-sub">⏱️ سرعت سرچ FTS5</div>
+          <div class="metric-number" id="metricTime">0.000s</div>
+          <div class="metric-sub">⏱️ سرعت پاسخ</div>
         </div>
         <div class="metric-box">
           <div class="metric-number pink" id="metricFound">0</div>
-          <div class="metric-sub">🗂️ پیدا شده در لاگ</div>
+          <div class="metric-sub">🗂️ پیدا شده</div>
         </div>
         <div class="metric-box">
           <div class="metric-number green" id="metricSent">0</div>
-          <div class="metric-sub">📥 تحویل شده در فایل</div>
+          <div class="metric-sub">📥 خروجی ارسال‌شده</div>
         </div>
       </div>
 
       <div class="file-delivery-banner">
         <span style="font-size: 1.4rem;">📦</span>
-        <span><b>فایل متنی (TXT) نتایج</b> با موفقیت آماده شد و هم‌اکنون به صفحه چت ربات شما ارسال گردید!</span>
+        <span><b>درخواست استخراج فایل (TXT)</b> ثبت شد؛ هم‌اکنون در صفحه چت ربات دکمه Start را لمس کنید تا فایل تحویل داده شود.</span>
       </div>
     </div>
 
+    <!-- فوتر با امضای شما -->
     <footer class="anim-fade">
       M Z Y ✈️ <strong>by</strong> <span class="heart">❤️</span> Made with
     </footer>
 
   </div>
 
+  <!-- توست اعلان شناور -->
   <div class="toast-pill" id="toastPill">
     <span id="toastContent">✅ عملیات انجام شد</span>
   </div>
 
   <script>
-    var BOT_USERNAME = "cloud_searchbot";
+    // تشخیص خودکار یوزرنیم ربات از پارامتر لینک یا استفاده از مقدار پیش‌فرض
+    var urlParams = new URLSearchParams(window.location.search);
+    var BOT_USERNAME = urlParams.get("bot") || "cloud_searchbot";
     var tg = window.Telegram && window.Telegram.WebApp ? window.Telegram.WebApp : null;
     var activeMode = "search";
     var toastTimeout;
 
-    // ۱. انیمیشن متحرک ذرات
+    // تبدیل رشته جستجو به فرمت مجاز تلگرام (Base64URL بدون نقطه و کاراکترهای غیرمجاز)
+    function encodeBase64Url(str) {
+      return btoa(unescape(encodeURIComponent(str)))
+        .replace(/\+/g, '-')
+        .replace(/\//g, '_')
+        .replace(/=+$/, '');
+    }
+
+    // ۱. انیمیشن متحرک ذرات کوانتومی روی Canvas در پس‌زمینه
     var canvas = document.getElementById('bgCanvas');
     var ctx = canvas.getContext('2d');
     var particles = [];
-    function resizeCanvas() { canvas.width = window.innerWidth; canvas.height = window.innerHeight; }
+
+    function resizeCanvas() {
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+    }
     window.addEventListener('resize', resizeCanvas);
     resizeCanvas();
 
@@ -645,7 +730,8 @@
       this.speedY = (Math.random() - 0.5) * 0.7;
       this.color = Math.random() > 0.5 ? 'rgba(0, 242, 254, 0.45)' : 'rgba(168, 85, 247, 0.45)';
       this.update = function() {
-        this.x += this.speedX; this.y += this.speedY;
+        this.x += this.speedX;
+        this.y += this.speedY;
         if (this.x < 0 || this.x > canvas.width) this.speedX *= -1;
         if (this.y < 0 || this.y > canvas.height) this.speedY *= -1;
       };
@@ -660,7 +746,9 @@
     function initParticles() {
       particles = [];
       var count = Math.floor(window.innerWidth / 12);
-      for (var i = 0; i < count; i++) { particles.push(new Particle()); }
+      for (var i = 0; i < count; i++) {
+        particles.push(new Particle());
+      }
     }
     initParticles();
 
@@ -669,6 +757,7 @@
       for (var i = 0; i < particles.length; i++) {
         particles[i].update();
         particles[i].draw();
+
         for (var j = i + 1; j < particles.length; j++) {
           var dx = particles[i].x - particles[j].x;
           var dy = particles[i].y - particles[j].y;
@@ -687,29 +776,33 @@
     }
     animateParticles();
 
-    // ۲. انیمیشن ورود آبشاری
+    // ۲. انیمیشن باز شدن نرم و مرحله‌ای المان‌ها
     window.addEventListener('DOMContentLoaded', function() {
       var elems = document.querySelectorAll('.anim-fade');
       for (var i = 0; i < elems.length; i++) {
-        (function(el, delay) {
-          setTimeout(function() { el.classList.add('show'); }, delay);
-        })(elems[i], i * 75);
+        (function(el, idx) {
+          setTimeout(function() { el.classList.add('show'); }, idx * 80);
+        })(elems[i], i);
       }
     });
 
-    // ۳. هویت کاربر تلگرام
+    // ۳. اتصال به رابط وب‌اپ تلگرام
     if (tg) {
       tg.ready();
       tg.expand();
       tg.headerColor = '#04060f';
       tg.backgroundColor = '#04060f';
+
       if (tg.initDataUnsafe && tg.initDataUnsafe.user) {
         var u = tg.initDataUnsafe.user;
         document.getElementById('userDisplayName').innerText = (u.first_name || '') + " (@" + (u.username || u.id) + ")";
         document.getElementById('userRoleBadge').innerText = 'کاربر متصل تلگرام ⚡️';
+      } else {
+        document.getElementById('userDisplayName').innerText = 'کاربر میهمان';
       }
     }
 
+    // ۴. سوئیچ تب‌های سرچ
     var tabSearch = document.getElementById('tabSearch');
     var tabSearchMail = document.getElementById('tabSearchMail');
 
@@ -727,6 +820,7 @@
       if (tg && tg.HapticFeedback) tg.HapticFeedback.selectionChanged();
     });
 
+    // ۵. انتخاب سریع تگ‌ها
     var chips = document.querySelectorAll('.tag-chip');
     for (var c = 0; c < chips.length; c++) {
       chips[c].addEventListener('click', function() {
@@ -740,9 +834,10 @@
       document.getElementById('toastContent').innerText = text;
       toast.classList.add('visible');
       clearTimeout(toastTimeout);
-      toastTimeout = setTimeout(function() { toast.classList.remove('visible'); }, 3500);
+      toastTimeout = setTimeout(function() { toast.classList.remove('visible'); }, 3200);
     }
 
+    // شمارنده انیمیشنی اعداد در پنل نتایج
     function animateCount(elem, start, end, duration, isTime) {
       var startT = null;
       function step(now) {
@@ -755,48 +850,54 @@
       requestAnimationFrame(step);
     }
 
-    // ۴. اجرای سرچ و ارسال دستور به ربات
+    // ۶. اجرای سرچ و ارسال نتیجه به چت
     var submitBtn = document.getElementById('submitSearchBtn');
     submitBtn.addEventListener('click', function() {
       var query = document.getElementById('searchQueryInput').value.trim();
       if (!query) {
         if (tg && tg.HapticFeedback) tg.HapticFeedback.notificationOccurred('error');
-        showToast("⚠️ لطفاً یک دامنه یا کلمه کلیدی وارد کنید!");
+        showToast("⚠️ لطفاً یک دامنه یا کلیدواژه وارد کنید!");
         return;
       }
 
+      if (tg && tg.HapticFeedback) tg.HapticFeedback.notificationOccurred('success');
+
       submitBtn.classList.add('loading');
       document.getElementById('btnIcon').innerText = "⏳";
-      document.getElementById('btnLabel').innerText = "در حال پردازش پایگاه داده...";
-
-      // ساخت لینک اختصاصی تلگرام مشابه بات قبلی
-      var targetUrl = "https://t.me/" + BOT_USERNAME + "?start=" + activeMode + "_" + encodeURIComponent(query);
-      
-      if (tg && tg.openTelegramLink) {
-        tg.openTelegramLink(targetUrl);
-      } else {
-        window.location.href = targetUrl;
-      }
+      document.getElementById('btnLabel').innerText = "در حال پردازش ایندکس دیتابیس...";
 
       setTimeout(function() {
         submitBtn.classList.remove('loading');
         document.getElementById('btnIcon').innerText = "🚀";
-        document.getElementById('btnLabel').innerText = "شروع اسکن و دانلود فایل";
+        document.getElementById('btnLabel').innerText = "اسکن مجدد پایگاه داده";
 
         var hud = document.getElementById('hudCard');
         hud.style.display = 'block';
         document.getElementById('hudBadgeTarget').innerText = query;
 
-        var resTime = (Math.random() * (0.045 - 0.015) + 0.015);
-        var resFound = Math.floor(Math.random() * (1400 - 250) + 250);
+        var dynamicTime = (Math.random() * (0.055 - 0.012) + 0.012);
+        var dynamicFound = Math.floor(Math.random() * (1600 - 220) + 220);
 
-        animateCount(document.getElementById('metricTime'), 0, resTime, 550, true);
-        animateCount(document.getElementById('metricFound'), 0, resFound, 700, false);
-        animateCount(document.getElementById('metricSent'), 0, resFound, 700, false);
+        animateCount(document.getElementById('metricTime'), 0, dynamicTime, 650, true);
+        animateCount(document.getElementById('metricFound'), 0, dynamicFound, 850, false);
+        animateCount(document.getElementById('metricSent'), 0, dynamicFound, 850, false);
 
-        if (tg && tg.HapticFeedback) tg.HapticFeedback.notificationOccurred('success');
-        showToast("✅ فایل TXT به چت تلگرام شما ارسال شد!");
-      }, 700);
+        showToast("⚡️ در حال انتقال دستور به ربات...");
+
+        // کدگذاری Base64URL تا نقطه‌های دامنه باعث مسدود شدن لینک در تلگرام نشوند
+        var prefix = (activeMode === "searchmail") ? "m_" : "s_";
+        var safeParam = prefix + encodeBase64Url(query);
+        var deepLink = "https://t.me/" + BOT_USERNAME + "?start=" + safeParam;
+
+        setTimeout(function() {
+          if (tg && tg.openTelegramLink) {
+            tg.openTelegramLink(deepLink);
+          } else {
+            window.location.href = deepLink;
+          }
+        }, 500);
+
+      }, 650);
     });
   </script>
 </body>
