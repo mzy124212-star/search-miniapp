@@ -1,0 +1,803 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>⚡️ Cloud Search FTS5 Engine</title>
+  <script src="https://telegram.org/js/telegram-web-app.js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@300;400;500;700;800;900&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg-dark: #04060f;
+      --card-bg: rgba(13, 19, 38, 0.75);
+      --card-border: rgba(0, 242, 254, 0.28);
+      --neon-cyan: #00f2fe;
+      --neon-purple: #a855f7;
+      --neon-pink: #ec4899;
+      --neon-green: #10b981;
+      --text-main: #f8fafc;
+      --text-muted: #94a3b8;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: 'Vazirmatn', sans-serif;
+      -webkit-tap-highlight-color: transparent;
+      user-select: none;
+    }
+
+    body {
+      background-color: var(--bg-dark);
+      color: var(--text-main);
+      min-height: 100vh;
+      padding: 18px 16px 45px 16px;
+      overflow-x: hidden;
+      position: relative;
+    }
+
+    #bgCanvas {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: -2;
+      pointer-events: none;
+    }
+
+    .glow-orb {
+      position: fixed;
+      border-radius: 50%;
+      filter: blur(100px);
+      z-index: -1;
+      opacity: 0.35;
+      pointer-events: none;
+      animation: floatGlow 14s infinite alternate ease-in-out;
+    }
+
+    .orb-purple {
+      width: 320px;
+      height: 320px;
+      background: var(--neon-purple);
+      top: -90px;
+      left: -90px;
+    }
+
+    .orb-cyan {
+      width: 350px;
+      height: 350px;
+      background: var(--neon-cyan);
+      bottom: -80px;
+      right: -80px;
+      animation-delay: -7s;
+    }
+
+    @keyframes floatGlow {
+      0% { transform: translate(0, 0) scale(1); }
+      100% { transform: translate(60px, 50px) scale(1.3); }
+    }
+
+    .container {
+      max-width: 520px;
+      margin: 0 auto;
+      display: flex;
+      flex-direction: column;
+      gap: 15px;
+    }
+
+    .anim-fade {
+      opacity: 0;
+      transform: translateY(22px) scale(0.97);
+      transition: all 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    .anim-fade.show {
+      opacity: 1;
+      transform: translateY(0) scale(1);
+    }
+
+    .system-status-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: rgba(15, 23, 42, 0.7);
+      border: 1px solid rgba(0, 242, 254, 0.2);
+      border-radius: 20px;
+      padding: 8px 16px;
+      backdrop-filter: blur(14px);
+    }
+
+    .status-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 0.76rem;
+      font-weight: 800;
+      color: var(--neon-green);
+    }
+
+    .status-dot {
+      width: 8px;
+      height: 8px;
+      background: var(--neon-green);
+      border-radius: 50%;
+      box-shadow: 0 0 10px var(--neon-green);
+      animation: pulseDot 1.4s infinite;
+    }
+
+    @keyframes pulseDot {
+      0%, 100% { transform: scale(1); opacity: 1; }
+      50% { transform: scale(1.5); opacity: 0.4; }
+    }
+
+    .engine-tag {
+      font-size: 0.72rem;
+      font-weight: 700;
+      color: var(--neon-cyan);
+      background: rgba(0, 242, 254, 0.1);
+      border: 1px solid rgba(0, 242, 254, 0.25);
+      padding: 3px 10px;
+      border-radius: 12px;
+    }
+
+    header {
+      text-align: center;
+      padding: 6px 0;
+    }
+
+    .main-title {
+      font-size: 1.95rem;
+      font-weight: 900;
+      background: linear-gradient(135deg, #ffffff 15%, var(--neon-cyan) 60%, var(--neon-purple) 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      filter: drop-shadow(0 0 24px rgba(0, 242, 254, 0.55));
+    }
+
+    .sub-title {
+      font-size: 0.86rem;
+      color: var(--text-muted);
+      margin-top: 2px;
+    }
+
+    .user-overview-card {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 20px;
+      padding: 14px 18px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      backdrop-filter: blur(18px);
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+    }
+
+    .user-meta {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .user-avatar-icon {
+      width: 44px;
+      height: 44px;
+      border-radius: 14px;
+      background: linear-gradient(135deg, rgba(0, 242, 254, 0.25), rgba(168, 85, 247, 0.35));
+      border: 1px solid var(--neon-cyan);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.3rem;
+    }
+
+    .user-info-text .name {
+      font-size: 0.92rem;
+      font-weight: 800;
+      color: #fff;
+    }
+
+    .user-info-text .role {
+      font-size: 0.74rem;
+      color: var(--neon-cyan);
+    }
+
+    .stat-mini-pill {
+      text-align: left;
+    }
+
+    .stat-mini-pill .count {
+      font-size: 1.15rem;
+      font-weight: 900;
+      color: #fff;
+    }
+
+    .stat-mini-pill .label {
+      font-size: 0.7rem;
+      color: var(--text-muted);
+    }
+
+    .search-modes {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+
+    .mode-tab {
+      background: rgba(15, 23, 42, 0.75);
+      border: 1.5px solid var(--card-border);
+      border-radius: 18px;
+      padding: 14px 12px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 6px;
+      cursor: pointer;
+      backdrop-filter: blur(14px);
+      transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+
+    .mode-tab .mode-icon {
+      font-size: 1.5rem;
+    }
+
+    .mode-tab .mode-label {
+      font-size: 0.86rem;
+      font-weight: 700;
+      color: var(--text-muted);
+    }
+
+    .mode-tab.active {
+      background: linear-gradient(135deg, rgba(0, 242, 254, 0.22), rgba(168, 85, 247, 0.32));
+      border-color: var(--neon-cyan);
+      box-shadow: 0 0 22px rgba(0, 242, 254, 0.35);
+      transform: translateY(-2px);
+    }
+
+    .mode-tab.active .mode-label {
+      color: #fff;
+      font-weight: 900;
+    }
+
+    .search-box-card {
+      position: relative;
+    }
+
+    .search-input-box {
+      width: 100%;
+      background: rgba(13, 19, 38, 0.88);
+      border: 1.5px solid var(--card-border);
+      border-radius: 20px;
+      padding: 18px 20px 18px 54px;
+      color: #fff;
+      font-size: 1.05rem;
+      font-weight: 600;
+      outline: none;
+      backdrop-filter: blur(20px);
+      transition: all 0.3s ease;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.45);
+    }
+
+    .search-input-box:focus {
+      border-color: var(--neon-cyan);
+      box-shadow: 0 0 28px rgba(0, 242, 254, 0.4), 0 12px 36px rgba(0, 0, 0, 0.7);
+    }
+
+    .search-icon-float {
+      position: absolute;
+      left: 18px;
+      top: 50%;
+      transform: translateY(-50%);
+      font-size: 1.35rem;
+      pointer-events: none;
+      filter: drop-shadow(0 0 8px rgba(0, 242, 254, 0.6));
+    }
+
+    .quick-tags-wrap {
+      display: flex;
+      gap: 8px;
+      overflow-x: auto;
+      padding: 2px 2px 8px 2px;
+      scrollbar-width: none;
+    }
+    .quick-tags-wrap::-webkit-scrollbar { display: none; }
+
+    .tag-chip {
+      flex: 0 0 auto;
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      color: var(--text-muted);
+      padding: 8px 16px;
+      border-radius: 24px;
+      font-size: 0.8rem;
+      font-weight: 600;
+      cursor: pointer;
+      backdrop-filter: blur(10px);
+      transition: all 0.25s ease;
+    }
+
+    .tag-chip:hover {
+      border-color: var(--neon-cyan);
+      color: #fff;
+      box-shadow: 0 0 14px rgba(0, 242, 254, 0.35);
+    }
+
+    .main-action-btn {
+      width: 100%;
+      padding: 18px 20px;
+      border: none;
+      border-radius: 20px;
+      background: linear-gradient(135deg, #00f2fe 0%, #a855f7 50%, #ec4899 100%);
+      background-size: 200% 200%;
+      color: #fff;
+      font-size: 1.1rem;
+      font-weight: 900;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      box-shadow: 0 0 30px rgba(0, 242, 254, 0.45);
+      position: relative;
+      overflow: hidden;
+      animation: gradientShift 6s ease infinite;
+      transition: all 0.25s ease;
+    }
+
+    @keyframes gradientShift {
+      0% { background-position: 0% 50%; }
+      50% { background-position: 100% 50%; }
+      100% { background-position: 0% 50%; }
+    }
+
+    .main-action-btn:active {
+      transform: scale(0.97);
+    }
+
+    .main-action-btn.loading {
+      pointer-events: none;
+      background: #334155;
+      box-shadow: none;
+      animation: none;
+    }
+
+    .hud-results-card {
+      background: var(--card-bg);
+      border: 1.5px solid var(--card-border);
+      border-radius: 24px;
+      padding: 20px 18px;
+      backdrop-filter: blur(24px);
+      box-shadow: 0 14px 40px rgba(0, 0, 0, 0.6);
+      display: none;
+      position: relative;
+      overflow: hidden;
+      animation: popIn 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    @keyframes popIn {
+      from { opacity: 0; transform: translateY(20px) scale(0.95); }
+      to { opacity: 1; transform: translateY(0) scale(1); }
+    }
+
+    .hud-results-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 2px;
+      background: linear-gradient(90deg, transparent, var(--neon-cyan), var(--neon-pink), transparent);
+    }
+
+    .hud-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 16px;
+    }
+
+    .hud-head-title {
+      font-size: 0.95rem;
+      font-weight: 800;
+    }
+
+    .hud-badge-query {
+      font-size: 0.75rem;
+      background: rgba(0, 242, 254, 0.12);
+      border: 1px solid rgba(0, 242, 254, 0.35);
+      color: var(--neon-cyan);
+      padding: 4px 10px;
+      border-radius: 10px;
+      font-weight: 700;
+    }
+
+    .metrics-row {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+      margin-bottom: 16px;
+    }
+
+    .metric-box {
+      background: rgba(255, 255, 255, 0.035);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 16px;
+      padding: 14px 8px;
+      text-align: center;
+    }
+
+    .metric-number {
+      font-size: 1.35rem;
+      font-weight: 900;
+      color: var(--neon-cyan);
+      text-shadow: 0 0 14px rgba(0, 242, 254, 0.6);
+      margin-bottom: 4px;
+    }
+
+    .metric-number.pink {
+      color: var(--neon-pink);
+      text-shadow: 0 0 14px rgba(236, 72, 153, 0.6);
+    }
+
+    .metric-number.green {
+      color: var(--neon-green);
+      text-shadow: 0 0 14px rgba(16, 185, 129, 0.6);
+    }
+
+    .metric-sub {
+      font-size: 0.72rem;
+      color: var(--text-muted);
+      font-weight: 600;
+    }
+
+    .file-delivery-banner {
+      background: rgba(16, 185, 129, 0.1);
+      border: 1px solid rgba(16, 185, 129, 0.3);
+      border-radius: 14px;
+      padding: 12px 14px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 0.82rem;
+      color: #e2e8f0;
+      line-height: 1.4;
+    }
+
+    .toast-pill {
+      position: fixed;
+      bottom: 45px;
+      left: 50%;
+      transform: translateX(-50%) translateY(140px);
+      background: rgba(11, 18, 35, 0.95);
+      border: 1.5px solid var(--neon-cyan);
+      box-shadow: 0 0 30px rgba(0, 242, 254, 0.55);
+      color: #fff;
+      padding: 12px 24px;
+      border-radius: 30px;
+      font-size: 0.88rem;
+      font-weight: 800;
+      backdrop-filter: blur(20px);
+      z-index: 1000;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      opacity: 0;
+      pointer-events: none;
+      transition: all 0.35s ease;
+      white-space: nowrap;
+    }
+
+    .toast-pill.visible {
+      transform: translateX(-50%) translateY(0);
+      opacity: 1;
+    }
+
+    footer {
+      margin-top: 25px;
+      text-align: center;
+      font-size: 0.92rem;
+      color: #94a3b8;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+    }
+
+    footer strong {
+      color: var(--neon-cyan);
+      text-shadow: 0 0 12px rgba(0, 242, 254, 0.6);
+    }
+
+    .heart {
+      color: #ff0055;
+      animation: heartbeat 1.3s infinite ease-in-out;
+    }
+
+    @keyframes heartbeat {
+      0%, 100% { transform: scale(1); }
+      50% { transform: scale(1.35); filter: drop-shadow(0 0 12px #ff0055); }
+    }
+  </style>
+</head>
+<body>
+
+  <canvas id="bgCanvas"></canvas>
+  <div class="glow-orb orb-purple"></div>
+  <div class="glow-orb orb-cyan"></div>
+
+  <div class="container">
+
+    <div class="system-status-bar anim-fade">
+      <div class="status-badge">
+        <div class="status-dot"></div>
+        <span>SYSTEM OPERATIONAL</span>
+      </div>
+      <div class="engine-tag">FTS5 • LIVE HUB</div>
+    </div>
+
+    <header class="anim-fade">
+      <h1 class="main-title">⚡️ CLOUD SEARCH</h1>
+      <p class="sub-title">سامانه جستجوی فوق‌سریع و هوشمند پایگاه داده</p>
+    </header>
+
+    <div class="user-overview-card anim-fade">
+      <div class="user-meta">
+        <div class="user-avatar-icon">🛡️</div>
+        <div class="user-info-text">
+          <div class="name" id="userDisplayName">کاربر متصل تلگرام</div>
+          <div class="role" id="userRoleBadge">سرویس آماده به کار</div>
+        </div>
+      </div>
+      <div class="stat-mini-pill">
+        <div class="count">3.1B+</div>
+        <div class="label">رکوردهای ایندکس</div>
+      </div>
+    </div>
+
+    <div class="search-modes anim-fade">
+      <div class="mode-tab active" id="tabSearch" data-mode="search">
+        <div class="mode-icon">🔍</div>
+        <div class="mode-label">جستجوی لاگ خطی</div>
+      </div>
+      <div class="mode-tab" id="tabSearchMail" data-mode="searchmail">
+        <div class="mode-icon">🔐</div>
+        <div class="mode-label">استخراج Mail:Password</div>
+      </div>
+    </div>
+
+    <div class="search-box-card anim-fade">
+      <span class="search-icon-float">⚡️</span>
+      <input type="text" class="search-input-box" id="searchQueryInput" placeholder="دامنه یا کلمه کلیدی (مثلاً: instagram.com)..." />
+    </div>
+
+    <div class="quick-tags-wrap anim-fade">
+      <div class="tag-chip" data-q="instagram.com">📷 instagram.com</div>
+      <div class="tag-chip" data-q="gmail.com">✉️ gmail.com</div>
+      <div class="tag-chip" data-q="netflix.com">🎬 netflix.com</div>
+      <div class="tag-chip" data-q="yahoo.com">📮 yahoo.com</div>
+      <div class="tag-chip" data-q="adobe.com">🎨 adobe.com</div>
+    </div>
+
+    <button class="main-action-btn anim-fade" id="submitSearchBtn">
+      <span id="btnIcon" style="font-size: 1.3rem;">🚀</span>
+      <span id="btnLabel">شروع اسکن و دانلود فایل</span>
+    </button>
+
+    <div class="hud-results-card" id="hudCard">
+      <div class="hud-head">
+        <div class="hud-head-title">
+          <span>📊 وضعیت پردازش پایگاه داده</span>
+        </div>
+        <div class="hud-badge-query" id="hudBadgeTarget">target.com</div>
+      </div>
+
+      <div class="metrics-row">
+        <div class="metric-box">
+          <div class="metric-number" id="metricTime">0.024s</div>
+          <div class="metric-sub">⏱️ سرعت سرچ FTS5</div>
+        </div>
+        <div class="metric-box">
+          <div class="metric-number pink" id="metricFound">0</div>
+          <div class="metric-sub">🗂️ پیدا شده در لاگ</div>
+        </div>
+        <div class="metric-box">
+          <div class="metric-number green" id="metricSent">0</div>
+          <div class="metric-sub">📥 تحویل شده در فایل</div>
+        </div>
+      </div>
+
+      <div class="file-delivery-banner">
+        <span style="font-size: 1.4rem;">📦</span>
+        <span><b>فایل متنی (TXT) نتایج</b> با موفقیت آماده شد و هم‌اکنون به صفحه چت ربات شما ارسال گردید!</span>
+      </div>
+    </div>
+
+    <footer class="anim-fade">
+      M Z Y ✈️ <strong>by</strong> <span class="heart">❤️</span> Made with
+    </footer>
+
+  </div>
+
+  <div class="toast-pill" id="toastPill">
+    <span id="toastContent">✅ عملیات انجام شد</span>
+  </div>
+
+  <script>
+    var BOT_USERNAME = "cloud_searchbot";
+    var tg = window.Telegram && window.Telegram.WebApp ? window.Telegram.WebApp : null;
+    var activeMode = "search";
+    var toastTimeout;
+
+    // ۱. انیمیشن متحرک ذرات
+    var canvas = document.getElementById('bgCanvas');
+    var ctx = canvas.getContext('2d');
+    var particles = [];
+    function resizeCanvas() { canvas.width = window.innerWidth; canvas.height = window.innerHeight; }
+    window.addEventListener('resize', resizeCanvas);
+    resizeCanvas();
+
+    function Particle() {
+      this.x = Math.random() * canvas.width;
+      this.y = Math.random() * canvas.height;
+      this.size = Math.random() * 2 + 1;
+      this.speedX = (Math.random() - 0.5) * 0.7;
+      this.speedY = (Math.random() - 0.5) * 0.7;
+      this.color = Math.random() > 0.5 ? 'rgba(0, 242, 254, 0.45)' : 'rgba(168, 85, 247, 0.45)';
+      this.update = function() {
+        this.x += this.speedX; this.y += this.speedY;
+        if (this.x < 0 || this.x > canvas.width) this.speedX *= -1;
+        if (this.y < 0 || this.y > canvas.height) this.speedY *= -1;
+      };
+      this.draw = function() {
+        ctx.fillStyle = this.color;
+        ctx.beginPath();
+        ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+        ctx.fill();
+      };
+    }
+
+    function initParticles() {
+      particles = [];
+      var count = Math.floor(window.innerWidth / 12);
+      for (var i = 0; i < count; i++) { particles.push(new Particle()); }
+    }
+    initParticles();
+
+    function animateParticles() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      for (var i = 0; i < particles.length; i++) {
+        particles[i].update();
+        particles[i].draw();
+        for (var j = i + 1; j < particles.length; j++) {
+          var dx = particles[i].x - particles[j].x;
+          var dy = particles[i].y - particles[j].y;
+          var dist = Math.sqrt(dx * dx + dy * dy);
+          if (dist < 85) {
+            ctx.strokeStyle = "rgba(0, 242, 254, " + (0.18 - dist / 500) + ")";
+            ctx.lineWidth = 0.6;
+            ctx.beginPath();
+            ctx.moveTo(particles[i].x, particles[i].y);
+            ctx.lineTo(particles[j].x, particles[j].y);
+            ctx.stroke();
+          }
+        }
+      }
+      requestAnimationFrame(animateParticles);
+    }
+    animateParticles();
+
+    // ۲. انیمیشن ورود آبشاری
+    window.addEventListener('DOMContentLoaded', function() {
+      var elems = document.querySelectorAll('.anim-fade');
+      for (var i = 0; i < elems.length; i++) {
+        (function(el, delay) {
+          setTimeout(function() { el.classList.add('show'); }, delay);
+        })(elems[i], i * 75);
+      }
+    });
+
+    // ۳. هویت کاربر تلگرام
+    if (tg) {
+      tg.ready();
+      tg.expand();
+      tg.headerColor = '#04060f';
+      tg.backgroundColor = '#04060f';
+      if (tg.initDataUnsafe && tg.initDataUnsafe.user) {
+        var u = tg.initDataUnsafe.user;
+        document.getElementById('userDisplayName').innerText = (u.first_name || '') + " (@" + (u.username || u.id) + ")";
+        document.getElementById('userRoleBadge').innerText = 'کاربر متصل تلگرام ⚡️';
+      }
+    }
+
+    var tabSearch = document.getElementById('tabSearch');
+    var tabSearchMail = document.getElementById('tabSearchMail');
+
+    tabSearch.addEventListener('click', function() {
+      activeMode = "search";
+      tabSearch.classList.add('active');
+      tabSearchMail.classList.remove('active');
+      if (tg && tg.HapticFeedback) tg.HapticFeedback.selectionChanged();
+    });
+
+    tabSearchMail.addEventListener('click', function() {
+      activeMode = "searchmail";
+      tabSearchMail.classList.add('active');
+      tabSearch.classList.remove('active');
+      if (tg && tg.HapticFeedback) tg.HapticFeedback.selectionChanged();
+    });
+
+    var chips = document.querySelectorAll('.tag-chip');
+    for (var c = 0; c < chips.length; c++) {
+      chips[c].addEventListener('click', function() {
+        document.getElementById('searchQueryInput').value = this.getAttribute('data-q');
+        if (tg && tg.HapticFeedback) tg.HapticFeedback.impactOccurred('light');
+      });
+    }
+
+    function showToast(text) {
+      var toast = document.getElementById('toastPill');
+      document.getElementById('toastContent').innerText = text;
+      toast.classList.add('visible');
+      clearTimeout(toastTimeout);
+      toastTimeout = setTimeout(function() { toast.classList.remove('visible'); }, 3500);
+    }
+
+    function animateCount(elem, start, end, duration, isTime) {
+      var startT = null;
+      function step(now) {
+        if (!startT) startT = now;
+        var progress = Math.min((now - startT) / duration, 1);
+        var val = progress * (end - start) + start;
+        elem.innerText = isTime ? val.toFixed(3) + 's' : Math.floor(val).toLocaleString();
+        if (progress < 1) requestAnimationFrame(step);
+      }
+      requestAnimationFrame(step);
+    }
+
+    // ۴. اجرای سرچ و ارسال دستور به ربات
+    var submitBtn = document.getElementById('submitSearchBtn');
+    submitBtn.addEventListener('click', function() {
+      var query = document.getElementById('searchQueryInput').value.trim();
+      if (!query) {
+        if (tg && tg.HapticFeedback) tg.HapticFeedback.notificationOccurred('error');
+        showToast("⚠️ لطفاً یک دامنه یا کلمه کلیدی وارد کنید!");
+        return;
+      }
+
+      submitBtn.classList.add('loading');
+      document.getElementById('btnIcon').innerText = "⏳";
+      document.getElementById('btnLabel').innerText = "در حال پردازش پایگاه داده...";
+
+      // ساخت لینک اختصاصی تلگرام مشابه بات قبلی
+      var targetUrl = "https://t.me/" + BOT_USERNAME + "?start=" + activeMode + "_" + encodeURIComponent(query);
+      
+      if (tg && tg.openTelegramLink) {
+        tg.openTelegramLink(targetUrl);
+      } else {
+        window.location.href = targetUrl;
+      }
+
+      setTimeout(function() {
+        submitBtn.classList.remove('loading');
+        document.getElementById('btnIcon').innerText = "🚀";
+        document.getElementById('btnLabel').innerText = "شروع اسکن و دانلود فایل";
+
+        var hud = document.getElementById('hudCard');
+        hud.style.display = 'block';
+        document.getElementById('hudBadgeTarget').innerText = query;
+
+        var resTime = (Math.random() * (0.045 - 0.015) + 0.015);
+        var resFound = Math.floor(Math.random() * (1400 - 250) + 250);
+
+        animateCount(document.getElementById('metricTime'), 0, resTime, 550, true);
+        animateCount(document.getElementById('metricFound'), 0, resFound, 700, false);
+        animateCount(document.getElementById('metricSent'), 0, resFound, 700, false);
+
+        if (tg && tg.HapticFeedback) tg.HapticFeedback.notificationOccurred('success');
+        showToast("✅ فایل TXT به چت تلگرام شما ارسال شد!");
+      }, 700);
+    });
+  </script>
+</body>
+</html>
